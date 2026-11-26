@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0c0c0e;
+  --color-panel: #141417;
+  --color-panel2: #1a1a1e;
+  --color-line: #2a2a30;
+  --color-ink: #ececef;
+  --color-muted: #8b8b95;
+  --color-red: #a20623;
+  --color-reddim: #3a0b15;
+  --color-redhi: #e0284f;
+  --color-good: #3ecf8e;
+  --color-warn: #f0b429;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-face), ui-monospace, monospace;
+}
+
+:root {
+  color-scheme: dark;
+}
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+body {
+  font-family: var(--font-sans);
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a30;
+  border-radius: 6px;
+}
+input[type="range"] {
+  accent-color: var(--color-red);
+}
+input[type="color"] {
+  -webkit-appearance: none;
+  appearance: none;
+  border: 1px solid var(--color-line);
+  background: none;
+  padding: 0;
+  width: 34px;
+  height: 26px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 2px;
+}
+input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 4px;
+}
+.grid-bg {
+  background-image: radial-gradient(circle at 50% 35%, #1b1b21 0%, #0c0c0e 70%);
+}
