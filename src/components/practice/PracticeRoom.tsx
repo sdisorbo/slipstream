@@ -19,7 +19,7 @@ const TOO_DAMAGED = 70;
 type Cam = "bird" | "follow" | "chase";
 const CAMS: Cam[] = ["bird", "follow", "chase"];
 const CAM_LABEL: Record<Cam, string> = { bird: "Bird's eye", follow: "Rotating", chase: "Chase" };
-const CAR_SCALE = 2.8; // cartoon scale for the overhead views
+const CAR_SCALE = 1.5; // slight cartoon exaggeration over true scale (1.0)
 
 const fmt = (t: number | null) => {
   if (t === null) return "–:––.–––";
@@ -297,7 +297,7 @@ export default function PracticeRoom({ onBack }: { onBack: () => void }) {
         dir.x += (hx - dir.x) * Math.min(1, dt * 3);
         dir.y += (hy - dir.y) * Math.min(1, dt * 3);
         const dl = Math.hypot(dir.x, dir.y) || 1;
-        const H = 56 + st.u * 0.14;
+        const H = 56 + st.u * 0.16;
         const off = 26;
         const bx = mode === "follow" ? -dir.x / dl : 0;
         const by = mode === "follow" ? -dir.y / dl : -1;
