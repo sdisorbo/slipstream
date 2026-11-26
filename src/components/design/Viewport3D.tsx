@@ -21,7 +21,7 @@ const VIEWS: Record<ViewName, [number, number, number]> = {
   iso: [6.2, 3.0, 6.2],
   front: [7.5, 1.1, 0],
   rear: [-7.5, 1.4, 0],
-  side: [0, 1.3, 8],
+  side: [0, 1.3, 11.5],
   top: [0.01, 9, 0.01],
 };
 
@@ -171,6 +171,7 @@ export default function Viewport3D({
       s.flowObjs = [];
       s.particles = null;
       // restore livery colors
+      if (s.car) (s.car.body.userData.liv as { value: number }).value = 1;
       const g = s.car?.bodyGeom;
       if (g) {
         (g.getAttribute("color") as THREE.BufferAttribute).set(g.userData.baseColors as Float32Array);
@@ -217,6 +218,7 @@ export default function Viewport3D({
       s.particles = { pts, pos: ppos, traces: flow.traces, phase };
 
       if (wind.surface) {
+        (s.car.body.userData.liv as { value: number }).value = 0;
         (s.car.body.material as THREE.MeshStandardMaterial).toneMapped = false;
         (s.car.body.material as THREE.MeshStandardMaterial).needsUpdate = true;
         const g = s.car.bodyGeom;

@@ -33,10 +33,10 @@ export const defaultDesign = (): CarDesign => ({
   name: "Apex One",
   body: {
     length: 4.8,
-    sideUpper: [P(0, 0.2), P(0.16, 0.27), P(0.38, 0.5), P(0.52, 0.72), P(0.62, 0.8), P(0.8, 0.5), P(1, 0.3)],
-    sideLower: [P(0, 0.15), P(0.25, 0.12), P(0.55, 0.1), P(0.85, 0.14), P(1, 0.22)],
-    planHalf: [P(0, 0.035), P(0.12, 0.06), P(0.3, 0.15), P(0.48, 0.34), P(0.62, 0.33), P(0.82, 0.2), P(1, 0.07)],
-    squareness: 2.6,
+    sideUpper: [P(0, 0.17), P(0.16, 0.2), P(0.3, 0.3), P(0.4, 0.52), P(0.5, 0.62), P(0.58, 0.98), P(0.68, 0.84), P(0.84, 0.55), P(1, 0.4)],
+    sideLower: [P(0, 0.13), P(0.25, 0.11), P(0.55, 0.1), P(0.85, 0.14), P(1, 0.22)],
+    planHalf: [P(0, 0.04), P(0.12, 0.07), P(0.3, 0.2), P(0.42, 0.36), P(0.62, 0.37), P(0.82, 0.22), P(1, 0.08)],
+    squareness: 3.6,
     material: "carbon",
   },
   frontWing: defaultFrontWing(),
@@ -49,6 +49,6 @@ export const defaultDesign = (): CarDesign => ({
   },
   wheelbase: 3.4,
   rideHeight: 0.04,
-  livery: { primary: "#a20623", secondary: "#1c1c20", accent: "#f2f2f4", number: 7, helmet: "#f2f2f4", helmetStripe: "#a20623" },
+  livery: { primary: "#d9202b", secondary: "#f2f2f4", accent: "#f2f2f4", number: 7, helmet: "#f2f2f4", helmetStripe: "#a20623" },
   driver: { name: "R. Vance" },
 });

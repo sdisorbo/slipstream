@@ -136,11 +136,11 @@ export default function PracticeRoom({ onBack }: { onBack: () => void }) {
   const [design, setDesign] = useState<CarDesign | null>(null);
   const [hud, setHud] = useState<Hud>(HUD0);
   const [wheelLeft, setWheelLeft] = useState(true);
-  const [camMode, setCamMode] = useState<"chase" | "high">("chase");
+  const [camMode, setCamMode] = useState<"chase" | "side" | "high">("chase");
   const [damage0, setDamage0] = useState(0);
   const [blocked, setBlocked] = useState(false);
   const blockedRef = useRef(blocked);
-  const camRef = useRef<"chase" | "high">("chase");
+  const camRef = useRef<"chase" | "side" | "high">("chase");
   const resetRef = useRef<() => void>(() => {});
   const repairRef = useRef<() => void>(() => {});
 
@@ -206,6 +206,7 @@ export default function PracticeRoom({ onBack }: { onBack: () => void }) {
     builds[1].group.visible = false;
     scene.add(root);
 
+
     const resize = () => {
       const w = host.clientWidth;
       const h = host.clientHeight;
@@ -223,7 +224,7 @@ export default function PracticeRoom({ onBack }: { onBack: () => void }) {
       const k = e.key.toLowerCase();
       if (["arrowleft", "arrowright", "arrowup", "arrowdown", " "].includes(k)) e.preventDefault();
       if (k === "r" && !e.repeat) resetRef.current();
-      if (k === "c" && !e.repeat) setCamMode((m) => (m === "chase" ? "high" : "chase"));
+      if (k === "c" && !e.repeat) setCamMode((m) => (m === "chase" ? "side" : m === "side" ? "high" : "chase"));
       kc.keys.add(k);
     };
     const up = (e: KeyboardEvent) => kc.keys.delete(e.key.toLowerCase());
@@ -295,31 +296,36 @@ export default function PracticeRoom({ onBack }: { onBack: () => void }) {
       tilt.rotation.x = Math.max(-0.05, Math.min(0.05, st.ay * 0.0012));
       tilt.rotation.y = Math.max(-0.04, Math.min(0.04, -st.ax * 0.0008));
       const straight = st.drs > 0.5;
-      builds[0].group.visible = !straight;
-      builds[1].group.visible = straight;
+      const sideCam = camRef.current === "side";
+      builds[0].group.visible = !straight && !sideCam;
+      builds[1].group.visible = straight && !sideCam;
 
-      const speedBack = 11 + st.u * 0.035;
+      const speedBack = 8.5 + st.u * 0.03;
       let tx: number;
       let ty: number;
       let tz: number;
-      if (camRef.current === "chase") {
+      if (sideCam) {
+        tx = st.x + st.hy * 11 + st.hx * 1.5;
+        ty = st.y - st.hx * 11 + st.hy * 1.5;
+        tz = 1.5;
+      } else if (camRef.current === "chase") {
         tx = st.x - st.hx * speedBack;
         ty = st.y - st.hy * speedBack;
-        tz = 3.6 + st.u * 0.006;
+        tz = 2.7 + st.u * 0.005;
       } else {
         tx = st.x - st.hx * 6;
         ty = st.y - st.hy * 6;
         tz = 70;
       }
-      const k = 1 - Math.exp(-dt * (camRef.current === "chase" ? 6 : 4));
+      const k = 1 - Math.exp(-dt * (sideCam ? 14 : camRef.current === "chase" ? 6 : 4));
       campos.x += (tx - campos.x) * k;
       campos.y += (ty - campos.y) * k;
       campos.z += (tz - campos.z) * k;
       shake *= Math.exp(-dt * 6);
       camera.position.set(campos.x + (Math.random() - 0.5) * shake, campos.y + (Math.random() - 0.5) * shake, campos.z);
-      camera.fov = 62 + Math.min(14, st.u * 0.07);
+      camera.fov = sideCam ? 34 : 62 + Math.min(14, st.u * 0.07);
       camera.updateProjectionMatrix();
-      camera.lookAt(st.x + st.hx * (camRef.current === "chase" ? 9 : 0), st.y + st.hy * (camRef.current === "chase" ? 9 : 0), 0.8);
+      camera.lookAt(st.x + st.hx * (camRef.current === "chase" ? 9 : 0), st.y + st.hy * (camRef.current === "chase" ? 9 : 0), sideCam ? 0.7 : 0.8);
       renderer.render(scene, camera);
 
       // --- HUD ---
@@ -396,8 +402,8 @@ export default function PracticeRoom({ onBack }: { onBack: () => void }) {
           <button onClick={() => resetRef.current()} className="rounded-md border border-line bg-panel/80 px-3 py-1.5 text-[13px] backdrop-blur hover:border-red">
             Restart lap <span className="ml-1 text-muted">R</span>
           </button>
-          <button onClick={() => setCamMode((m) => (m === "chase" ? "high" : "chase"))} className="rounded-md border border-line bg-panel/80 px-3 py-1.5 text-[13px] backdrop-blur hover:border-red">
-            Camera <span className="ml-1 text-muted">C</span>
+          <button onClick={() => setCamMode((m) => (m === "chase" ? "side" : m === "side" ? "high" : "chase"))} className="rounded-md border border-line bg-panel/80 px-3 py-1.5 text-[13px] backdrop-blur hover:border-red">
+            Camera: {camMode} <span className="ml-1 text-muted">C</span>
           </button>
           <button onClick={toggleSide} className="rounded-md border border-line bg-panel/80 px-3 py-1.5 text-[13px] backdrop-blur hover:border-red">
             Wheel: {wheelLeft ? "left" : "right"}
@@ -429,7 +435,7 @@ export default function PracticeRoom({ onBack }: { onBack: () => void }) {
       </div>
 
       {/* speed + status */}
-      <div className="pointer-events-none absolute bottom-[190px] left-1/2 w-64 -translate-x-1/2 text-center font-mono">
+      <div className="pointer-events-none absolute top-14 left-1/2 w-64 -translate-x-1/2 text-center font-mono">
         <div className="text-[56px] font-semibold leading-none tracking-tight">{Math.round(hud.kph)}</div>
         <div className="text-[11px] uppercase tracking-[0.2em] text-muted">km/h · gear {hud.gear}</div>
         <div className="mt-3 flex justify-center gap-2 text-[11px]">
