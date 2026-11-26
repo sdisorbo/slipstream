@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "Apex | Design. Build. Race.",
   description: "Design your own Formula car, race it every 30 minutes.",
 };
-export const viewport: Viewport = { themeColor: "#0c0c0e" };
+export const viewport: Viewport = { themeColor: "#0c0c0e", width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

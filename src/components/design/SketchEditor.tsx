@@ -64,8 +64,9 @@ export default function SketchEditor({
   const svg = useRef<SVGSVGElement>(null);
   const [drag, setDrag] = useState<{ cid: string; i: number } | null>(null);
   const [hover, setHover] = useState<string | null>(null);
+  const lastTap = useRef<{ id: string; t: number; x: number; y: number } | null>(null);
 
-  const toLocal = (e: React.PointerEvent | React.MouseEvent) => {
+  const toLocal = (e: { clientX: number; clientY: number }) => {
     const r = svg.current!.getBoundingClientRect();
     return { px: ((e.clientX - r.left) / r.width) * W, py: ((e.clientY - r.top) / r.height) * H };
   };
@@ -97,7 +98,7 @@ export default function SketchEditor({
     if (readout) setHover(readout(sp.id, x, y));
   };
 
-  const addPoint = (e: React.MouseEvent) => {
+  const addPoint = (e: { clientX: number; clientY: number }) => {
     const { px, py } = toLocal(e);
     const x = ix(px);
     const y = iy(py);
@@ -148,6 +149,15 @@ export default function SketchEditor({
         onPointerMove={onMove}
         onPointerUp={() => setDrag(null)}
         onPointerLeave={() => setDrag(null)}
+        onPointerDown={(e) => {
+          if (e.pointerType === "mouse") return;
+          const now = e.timeStamp;
+          const t = lastTap.current;
+          if (t && t.id === "svg" && now - t.t < 340 && Math.hypot(e.clientX - t.x, e.clientY - t.y) < 28) {
+            lastTap.current = null;
+            addPoint(e);
+          } else lastTap.current = { id: "svg", t: now, x: e.clientX, y: e.clientY };
+        }}
         onDoubleClick={addPoint}
         onContextMenu={(e) => e.preventDefault()}
       >
@@ -188,18 +198,22 @@ export default function SketchEditor({
         ))}
         {curves.map((c) =>
           c.points.map((p, i) => (
-            <circle
+            <g
               key={c.id + i}
-              cx={sx(p.x)}
-              cy={sy(p.y)}
-              r={drag?.cid === c.id && drag.i === i ? 7.5 : 6}
-              fill="#0c0c0e"
-              stroke={c.color}
-              strokeWidth={2.2}
               className="cursor-grab"
               onPointerDown={(e) => {
                 e.stopPropagation();
                 (e.target as Element).setPointerCapture?.(e.pointerId);
+                if (e.pointerType !== "mouse") {
+                  const now = e.timeStamp;
+                  const t = lastTap.current;
+                  if (t && t.id === c.id + i && now - t.t < 340) {
+                    lastTap.current = null;
+                    removePoint(c.id, i);
+                    return;
+                  }
+                  lastTap.current = { id: c.id + i, t: now, x: e.clientX, y: e.clientY };
+                }
                 setDrag({ cid: c.id, i });
               }}
               onDoubleClick={(e) => {
@@ -210,7 +224,10 @@ export default function SketchEditor({
                 e.preventDefault();
                 removePoint(c.id, i);
               }}
-            />
+            >
+              <circle cx={sx(p.x)} cy={sy(p.y)} r={16} fill="transparent" />
+              <circle cx={sx(p.x)} cy={sy(p.y)} r={drag?.cid === c.id && drag.i === i ? 7.5 : 6} fill="#0c0c0e" stroke={c.color} strokeWidth={2.2} />
+            </g>
           )),
         )}
         {drag && hover && (
@@ -221,8 +238,8 @@ export default function SketchEditor({
       </svg>
       <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted">
         <span>Drag points to reshape</span>
-        <span>Double-click a line to add a point</span>
-        <span>Double-click a point to remove it</span>
+        <span>Double-click / double-tap a line to add a point</span>
+        <span>Double-click / double-tap a point to remove it</span>
         {curves.length > 1 && (
           <span className="flex gap-3">
             {curves.map((c) => (

@@ -43,10 +43,12 @@ export default function DesignRoom({ onNav }: { onNav?: (to: "practice") => void
   const [wind, setWind] = useState<WindState>({ on: false, straight: false, surface: true });
   const [kph, setKph] = useState(300);
   const [yaw, setYaw] = useState(0);
+  const [windOpen, setWindOpen] = useState(true);
   const [view, setView] = useState<{ name: ViewName; n: number }>({ name: "iso", n: 0 });
 
   useEffect(() => {
     try {
+      setWindOpen(window.innerWidth >= 1024);
       const raw = localStorage.getItem(STORE);
       if (raw) setDesign(sanitize(JSON.parse(raw) as CarDesign));
     } catch {}
@@ -391,8 +393,8 @@ export default function DesignRoom({ onNav }: { onNav?: (to: "practice") => void
   })();
 
   return (
-    <div className="flex h-screen min-h-[640px] flex-col bg-bg">
-      <header className="flex h-12 shrink-0 items-center gap-6 border-b border-line bg-panel px-4">
+    <div className="flex min-h-dvh flex-col bg-bg lg:h-screen lg:min-h-[640px]">
+      <header className="flex h-12 shrink-0 items-center gap-3 border-b border-line bg-panel px-3 lg:gap-6 lg:px-4">
         <div className="flex items-center gap-2">
           <svg viewBox="0 0 32 32" className="h-6 w-6">
             <rect width="32" height="32" rx="7" fill="#0c0c0e" />
@@ -406,13 +408,13 @@ export default function DesignRoom({ onNav }: { onNav?: (to: "practice") => void
             Practice
           </button>
           {["Garage", "Race", "Pit crew", "Sponsors"].map((n) => (
-            <span key={n} className="cursor-not-allowed rounded-md px-3 py-1 text-muted/60" title="Coming soon">
+            <span key={n} className="hidden cursor-not-allowed rounded-md px-3 py-1 text-muted/60 md:inline" title="Coming soon">
               {n}
             </span>
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-3 text-[12px] text-muted">
-          <span className="font-mono">{design.name}</span>
+          <span className="hidden font-mono sm:inline">{design.name}</span>
           <button onClick={() => confirm("Reset the whole car to the starter design?") && setDesign(defaultDesign())} className="rounded-md border border-line px-2 py-1 hover:border-red hover:text-ink">
             Reset car
           </button>
@@ -446,8 +448,8 @@ export default function DesignRoom({ onNav }: { onNav?: (to: "practice") => void
         </aside>
 
         {/* viewport */}
-        <section className="flex min-h-[420px] min-w-0 flex-1 flex-col">
-          <div className="grid-bg relative min-h-[320px] flex-1">
+        <section className="flex min-w-0 flex-1 flex-col lg:min-h-[420px]">
+          <div className="grid-bg relative h-[46dvh] min-h-[260px] lg:h-auto lg:min-h-[320px] lg:flex-1">
             <Viewport3D design={design} wind={wind} view={view} />
             <div className="pointer-events-none absolute left-3 top-3 flex flex-wrap gap-1.5">
               <div className="pointer-events-auto flex overflow-hidden rounded-md border border-line bg-panel/90 text-[12px] backdrop-blur">
@@ -458,13 +460,15 @@ export default function DesignRoom({ onNav }: { onNav?: (to: "practice") => void
                 ))}
               </div>
             </div>
-            <div className="absolute right-3 top-3 w-[250px] rounded-lg border border-line bg-panel/90 p-3 text-[12px] backdrop-blur">
-              <div className="mb-2 flex items-center justify-between">
-                <span className="font-medium tracking-wide">Wind tunnel</span>
+            <div className={`absolute right-2 top-2 rounded-lg border border-line bg-panel/90 p-3 text-[12px] backdrop-blur lg:right-3 lg:top-3 ${windOpen ? "w-[230px] lg:w-[250px]" : "w-auto"}`}>
+              <div className={`flex items-center justify-between gap-3 ${windOpen ? "mb-2" : ""}`}>
+                <button onClick={() => setWindOpen((v) => !v)} className="flex items-center gap-1.5 font-medium tracking-wide" aria-label="Show or hide wind tunnel settings">Wind tunnel <span className="text-muted">{windOpen ? "▾" : "▸"}</span></button>
                 <button onClick={() => setWind((w) => ({ ...w, on: !w.on }))} className={`relative h-5 w-9 rounded-full transition ${wind.on ? "bg-redhi" : "bg-[#33333a]"}`} aria-label="Toggle wind tunnel">
                   <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${wind.on ? "left-[18px]" : "left-0.5"}`} />
                 </button>
               </div>
+              {windOpen && (
+                <>
               <div className="mb-2 flex overflow-hidden rounded-md border border-line">
                 {[
                   ["Corner mode", false],
@@ -488,6 +492,8 @@ export default function DesignRoom({ onNav }: { onNav?: (to: "practice") => void
                   <span className="h-1.5 flex-1 rounded-full" style={{ background: "linear-gradient(90deg,#1a40f2,#1acef2,#33e64d,#fae626,#f2261a)" }} />
                   <span>fast</span>
                 </div>
+              )}
+                </>
               )}
             </div>
           </div>
