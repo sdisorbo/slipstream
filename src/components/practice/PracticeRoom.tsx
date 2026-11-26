@@ -216,12 +216,13 @@ export default function PracticeRoom({ onBack }: { onBack: () => void }) {
       const kLeft = c.keys.has("arrowleft") || c.keys.has("a");
       const kRight = c.keys.has("arrowright") || c.keys.has("d");
       const kTarget = (kLeft ? 1 : 0) - (kRight ? 1 : 0);
-      const rate = kTarget === 0 ? 6 : 3;
+      const rate = kTarget === 0 ? 6 : 2.2;
       c.keySteer += Math.max(-rate * dt, Math.min(rate * dt, kTarget - c.keySteer));
-      const steer = c.touchSteer ?? c.keySteer;
+      const steerRaw = c.touchSteer ?? c.keySteer;
+      const steer = Math.sign(steerRaw) * Math.pow(Math.abs(steerRaw), 1.6); // gentler around the centre
       const gas = c.touchGas ?? (c.keys.has("arrowup") || c.keys.has("w") ? 1 : 0);
       const brake = c.touchBrake ?? (c.keys.has("arrowdown") || c.keys.has("s") || c.keys.has(" ") ? 1 : 0);
-      c.out.steer = steer;
+      c.out.steer = steerRaw;
       c.out.gas = gas;
       c.out.brake = brake;
 

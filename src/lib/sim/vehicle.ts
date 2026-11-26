@@ -127,8 +127,8 @@ export function step(p: VehicleParams, st: VState, inp: Input, track: Track): vo
   // steering: rate limited, speed-sensitive lock
   const maxRate = 7 * dt;
   st.steer += clamp(steerIn - st.steer, -maxRate, maxRate);
-  const sv = au / 35;
-  const delta = (st.steer * 0.3) / (1 + sv * sv);
+  const sv = au / 28;
+  const delta = (st.steer * 0.27) / (1 + sv * sv);
   const cd = 1 - (delta * delta) / 2;
   const sd = delta;
 
@@ -151,7 +151,7 @@ export function step(p: VehicleParams, st: VState, inp: Input, track: Track): vo
   const surf = st.offTrack ? 0.45 : 1;
   const mulT = (1 - 0.35 * st.wear) * (1 - 0.004 * st.damage) * surf;
   const muF = Math.max(1.2, 1.75 - 2e-5 * fzF) * mulT;
-  const muR = Math.max(1.2, 1.75 - 2e-5 * fzR) * mulT * 1.12; // wider rear tyres: built-in understeer margin
+  const muR = Math.max(1.2, 1.75 - 2e-5 * fzR) * mulT * 1.16; // wider rear tyres: built-in understeer margin
 
   // longitudinal
   const dir = sgn(u);
@@ -187,7 +187,7 @@ export function step(p: VehicleParams, st: VState, inp: Input, track: Track): vo
   const fyBody = fyF * cd + fxF * sd + fyR;
   const du = fxBody / m + st.v * st.r;
   const dv = fyBody / m - u * st.r;
-  const dr = (p.a * (fyF * cd + fxF * sd) - p.b * fyR) / p.Iz - st.r * (au < 5 ? 2 : 0);
+  const dr = (p.a * (fyF * cd + fxF * sd) - p.b * fyR) / p.Iz - st.r * (au < 5 ? 2 : 0.7 * Math.min(1, au / 30));
   st.ax = fxBody / m;
   st.ay = fyBody / m;
 

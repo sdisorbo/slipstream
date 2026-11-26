@@ -110,21 +110,18 @@ export function Pedal({
     return () => cancelAnimationFrame(raf);
   }, [ctl, kind]);
 
-  const set = (e: React.PointerEvent) => {
-    const r = el.current!.getBoundingClientRect();
-    const v = 1 - (e.clientY - r.top) / r.height;
-    ctl.setTouch(kind, Math.max(0.05, Math.min(1, v * 1.15)));
-  };
+  // a press is always full throttle / full brake, wherever on the pedal you touch
+  const set = () => ctl.setTouch(kind, 1);
   return (
     <div className="flex flex-col items-center gap-1">
       <div
         ref={el}
         onPointerDown={(e) => {
           el.current!.setPointerCapture(e.pointerId);
-          set(e);
+          set();
         }}
         onPointerMove={(e) => {
-          if ((kind === "gas" ? ctl.touchGas : ctl.touchBrake) !== null) set(e);
+          if ((kind === "gas" ? ctl.touchGas : ctl.touchBrake) !== null) set();
         }}
         onPointerUp={() => ctl.setTouch(kind, null)}
         onPointerCancel={() => ctl.setTouch(kind, null)}
