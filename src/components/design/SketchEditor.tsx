@@ -194,7 +194,7 @@ export default function SketchEditor({
           />
         )}
         {curves.map((c) => (
-          <path key={c.id} d={pathOf(c.points)} fill="none" stroke={c.color} strokeWidth={2.4} strokeLinejoin="round" />
+          <path key={c.id} d={pathOf(c.points)} fill="none" stroke={c.color} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
         ))}
         {curves.map((c) =>
           c.points.map((p, i) => (
@@ -238,8 +238,8 @@ export default function SketchEditor({
       </svg>
       <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted">
         <span>Drag points to reshape</span>
-        <span>Double-click / double-tap a line to add a point</span>
-        <span>Double-click / double-tap a point to remove it</span>
+        <span>Double-click or double-tap a line to add a point</span>
+        <span>Double-click or double-tap a point to remove it</span>
         {curves.length > 1 && (
           <span className="flex gap-3">
             {curves.map((c) => (

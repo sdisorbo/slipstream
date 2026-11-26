@@ -125,7 +125,7 @@ export function Pedal({
         }}
         onPointerUp={() => ctl.setTouch(kind, null)}
         onPointerCancel={() => ctl.setTouch(kind, null)}
-        className="relative touch-none select-none overflow-hidden rounded-xl border border-line bg-black/50 backdrop-blur"
+        className="relative touch-none select-none overflow-hidden rounded-xl border border-white/15 bg-black/50 backdrop-blur"
         style={{ width, height, cursor: "pointer" }}
       >
         <div ref={fill} className="absolute inset-x-0 bottom-0" style={{ background: kind === "gas" ? "linear-gradient(0deg,#a20623,#e0284f)" : "linear-gradient(0deg,#8a6a10,#f0b429)", height: "0%" }} />
@@ -133,7 +133,7 @@ export function Pedal({
           <div key={f} className="absolute inset-x-2 border-t border-white/10" style={{ top: `${f * 100}%` }} />
         ))}
       </div>
-      <span className="text-[10px] uppercase tracking-[0.16em] text-muted">{kind === "gas" ? "Gas" : "Brake"}</span>
+      <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/70">{kind === "gas" ? "Gas" : "Brake"}</span>
     </div>
   );
 }

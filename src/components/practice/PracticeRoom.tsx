@@ -61,7 +61,7 @@ function useViewport() {
   return vp;
 }
 
-const metal = "border border-white/10 bg-[linear-gradient(180deg,#34343a_0%,#1b1b1f_55%,#111114_100%)] shadow-[0_2px_8px_rgba(0,0,0,.55)]";
+const metal = "metal";
 
 function Bar({ label, v, col }: { label: string; v: number; col: string }) {
   return (
@@ -76,7 +76,7 @@ function Bar({ label, v, col }: { label: string; v: number; col: string }) {
 
 function IconBtn({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} aria-label={label} title={label} className={`${metal} flex h-9 w-9 items-center justify-center rounded-full text-[17px] active:scale-95`}>
+    <button onClick={onClick} aria-label={label} title={label} className={`${metal} flex h-10 w-10 items-center justify-center rounded-full text-[18px] font-bold transition-transform hover:bg-white/10 active:scale-90`}>
       {icon}
     </button>
   );
@@ -415,7 +415,7 @@ export default function PracticeRoom({ onBack }: { onBack: () => void }) {
           </div>
           <div className="mt-0.5 text-[11px] font-semibold tracking-wide text-white/90 sm:text-[13px]">
             {track.name} · Lap {hud.laps + 1}
-            {hud.cur === null ? " · cross the line to start timing" : hud.off ? " · off track!" : ""}
+            {hud.cur === null ? " · cross the line to start timing" : hud.off ? " · off track" : ""}
           </div>
         </div>
       </div>
@@ -454,7 +454,7 @@ export default function PracticeRoom({ onBack }: { onBack: () => void }) {
           <span className="rounded bg-black/50 px-1.5 py-0.5 text-white/80">{Math.abs(hud.gLat).toFixed(1)} g</span>
           <span className={`rounded bg-black/50 px-1.5 py-0.5 ${dmgCol}`}>{Math.round(hud.damage)}% dmg</span>
         </div>
-        {perf && !perf.legal && <div className="mt-1 text-[10px] text-warn">Not race-legal — fine for practice</div>}
+        {perf && !perf.legal && <div className="mt-1 text-[10px] text-warn">Not race-legal, fine for practice</div>}
       </div>
 
       {/* controls */}
@@ -476,10 +476,10 @@ export default function PracticeRoom({ onBack }: { onBack: () => void }) {
 
       {blocked && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/70 p-4">
-          <div className="max-w-sm rounded-xl border border-line bg-panel p-5 text-center">
+          <div className="card pop-in max-w-sm p-5 text-center">
             <div className="text-lg font-semibold">Car too damaged to run</div>
-            <p className="mt-2 text-[13px] text-muted">Damage is at {Math.round(damage0)}%. Practice is closed above {TOO_DAMAGED}%. Repairs will cost money and time once the economy exists; for now they are free.</p>
-            <button onClick={() => repairRef.current()} className="mt-4 rounded-md bg-red px-4 py-2 text-[13px] font-medium hover:bg-redhi">
+            <p className="mt-2 text-[13px] font-normal text-muted">Damage is at {Math.round(damage0)}%. Practice is closed above {TOO_DAMAGED}%. Repairs are free for now.</p>
+            <button onClick={() => repairRef.current()} className="btn btn-lg mt-4">
               Repair car
             </button>
           </div>
@@ -487,17 +487,17 @@ export default function PracticeRoom({ onBack }: { onBack: () => void }) {
       )}
 
       {portrait && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-bg/95 p-6 text-center">
+        <div className="game-bg absolute inset-0 z-50 flex flex-col items-center justify-center gap-4 p-6 text-center">
           <svg viewBox="0 0 64 64" className="h-20 w-20 animate-[spin_3s_ease-in-out_infinite]" style={{ animationTimingFunction: "ease-in-out" }}>
             <rect x="20" y="8" width="24" height="48" rx="5" fill="none" stroke="#e0284f" strokeWidth="3" />
             <circle cx="32" cy="50" r="2" fill="#e0284f" />
           </svg>
           <div className="text-lg font-semibold">Turn your phone sideways</div>
-          <p className="max-w-xs text-[13px] text-muted">Practice and races play in landscape: the wheel sits under your left thumb and the pedals under your right.</p>
-          <button onClick={goFullscreen} className="rounded-md bg-red px-4 py-2 text-[13px] font-medium">
-            Go full screen &amp; lock landscape
+          <p className="max-w-xs text-[13px] font-normal text-muted">Practice and races play in landscape: the wheel sits under your left thumb and the pedals under your right.</p>
+          <button onClick={goFullscreen} className="btn btn-lg">
+            Go full screen
           </button>
-          <button onClick={onBack} className="text-[12px] text-muted underline">
+          <button onClick={onBack} className="btn btn-dark">
             Back to design room
           </button>
         </div>
