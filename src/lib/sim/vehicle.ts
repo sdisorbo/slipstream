@@ -125,10 +125,10 @@ export function step(p: VehicleParams, st: VState, inp: Input, track: Track): vo
   const au = Math.abs(u);
 
   // steering: rate limited, speed-sensitive lock
-  const maxRate = 7 * dt;
+  const maxRate = 14 * dt;
   st.steer += clamp(steerIn - st.steer, -maxRate, maxRate);
-  const sv = au / 28;
-  const delta = (st.steer * 0.27) / (1 + sv * sv);
+  const sv = au / 36;
+  const delta = (st.steer * 0.3) / (1 + sv * sv);
   const cd = 1 - (delta * delta) / 2;
   const sd = delta;
 

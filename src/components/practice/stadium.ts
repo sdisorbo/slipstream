@@ -255,6 +255,7 @@ interface P {
 export class Fx {
   private pool: P[] = [];
   private tex: THREE.Texture;
+  sizeMul = 1;
   constructor(scene: THREE.Scene, count = 140) {
     const c = document.createElement("canvas");
     c.width = c.height = 64;
@@ -284,6 +285,7 @@ export class Fx {
     m.blending = kind === "spark" || kind === "fire" ? THREE.AdditiveBlending : THREE.NormalBlending;
     m.color.set(kind === "smoke" ? "#f2f2f4" : kind === "dark" ? "#2b2b30" : kind === "dust" ? "#c9b27d" : kind === "spark" ? "#ffb347" : "#ff7a18");
     p.life = kind === "spark" ? 0.35 + Math.random() * 0.25 : kind === "fire" ? 0.45 : 0.9 + Math.random() * 0.6;
+    size *= this.sizeMul;
     p.s0 = size * (kind === "spark" ? 0.25 : 0.6);
     p.s1 = size * (kind === "spark" ? 0.1 : kind === "fire" ? 1.1 : 2.4);
     p.op = kind === "spark" || kind === "fire" ? 1 : kind === "dark" ? 0.75 : 0.6;

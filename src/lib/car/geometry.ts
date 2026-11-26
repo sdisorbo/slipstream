@@ -322,7 +322,15 @@ export function toonify(root: THREE.Object3D, body: THREE.Mesh, lm: LiveryMap, l
   }
 }
 
+export interface WheelRig {
+  steer: THREE.Group;
+  spin: THREE.Group;
+  front: boolean;
+  r: number;
+}
+
 export interface CarBuild {
+  rigs: WheelRig[];
   group: THREE.Group;
   body: THREE.Mesh;
   bodyGeom: THREE.BufferGeometry;
@@ -382,8 +390,12 @@ export function buildCar(d: CarDesign, straight: boolean): CarBuild {
   const brakeMat = new THREE.MeshStandardMaterial({ color: "#7a787e", roughness: 0.5, metalness: 0.7 });
   const lipMat = new THREE.MeshStandardMaterial({ color: "#cfcdd2", roughness: 0.3, metalness: 0.8 });
   const caliperMat = new THREE.MeshStandardMaterial({ color: d.livery.primary, roughness: 0.5 });
+  const rigs: WheelRig[] = [];
   for (const w of wheels(d)) {
     const g = new THREE.Group();
+    const spin = new THREE.Group();
+    g.add(spin);
+    rigs.push({ steer: g, spin, front: w.front, r: w.r });
     const hw = w.width / 2;
     // grooved slick: rounded shoulders, a bulging sidewall and four circumferential grooves
     const prof: THREE.Vector2[] = [];
@@ -397,27 +409,27 @@ export function buildCar(d: CarDesign, straight: boolean): CarBuild {
     }
     for (const [rf, yf] of [...half].reverse()) prof.push(new THREE.Vector2(w.r * rf, hw * yf));
     const tire = new THREE.Mesh(new THREE.LatheGeometry(prof, 56), new THREE.MeshStandardMaterial({ color: "#0c0c0e", roughness: 0.85, side: THREE.DoubleSide }));
-    g.add(tire);
+    spin.add(tire);
     const face = new THREE.MeshStandardMaterial({ map: w.front ? wheelTexFront : wheelTexRear, roughness: 0.8, transparent: true, alphaTest: 0.35 });
     for (const sg of [-1, 1]) {
       const disc = new THREE.Mesh(new THREE.CircleGeometry(w.r * 0.9, 56), face);
       disc.rotation.x = sg > 0 ? -Math.PI / 2 : Math.PI / 2;
       disc.rotation.z = sg > 0 ? Math.PI : 0;
       disc.position.y = sg * hw * 0.99;
-      g.add(disc);
+      spin.add(disc);
       const lip = new THREE.Mesh(new THREE.TorusGeometry(w.r * 0.6, 0.011, 8, 56), lipMat);
       lip.rotation.x = Math.PI / 2;
       lip.position.y = sg * hw * 0.99;
-      g.add(lip);
+      spin.add(lip);
       // brake disc + caliper seen through the spokes
       const bd = new THREE.Mesh(new THREE.CylinderGeometry(w.r * 0.46, w.r * 0.46, 0.022, 40), brakeMat);
       bd.position.y = sg * hw * 0.5;
-      g.add(bd);
+      spin.add(bd);
       const cal = box(0.1, 0.05, 0.09, w.front ? 0.0 : 0.0, sg * hw * 0.5, w.r * 0.36, caliperMat);
-      g.add(cal);
+      spin.add(cal);
     }
     const hub = new THREE.Mesh(new THREE.CylinderGeometry(w.r * 0.15, w.r * 0.15, w.width * 1.02, 16), new THREE.MeshStandardMaterial({ color: "#2a2b30", roughness: 0.5, metalness: 0.7 }));
-    g.add(hub);
+    spin.add(hub);
     g.position.set(w.x, w.y, w.r);
     group.add(g);
     const b = bodyAt(w.x);
@@ -523,6 +535,7 @@ export function buildCar(d: CarDesign, straight: boolean): CarBuild {
   body.userData.liv = liv;
   toonify(group, body, lm, liv);
   return {
+    rigs,
     group,
     body,
     bodyGeom,

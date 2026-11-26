@@ -204,6 +204,7 @@ export default function PracticeRoom({ onBack }: { onBack: () => void }) {
     let bestLap: number | null = null;
     let shake = 0;
     let scale = CAR_SCALE;
+    let spinA = 0;
 
     const loop = () => {
       raf = requestAnimationFrame(loop);
@@ -216,10 +217,10 @@ export default function PracticeRoom({ onBack }: { onBack: () => void }) {
       const kLeft = c.keys.has("arrowleft") || c.keys.has("a");
       const kRight = c.keys.has("arrowright") || c.keys.has("d");
       const kTarget = (kLeft ? 1 : 0) - (kRight ? 1 : 0);
-      const rate = kTarget === 0 ? 6 : 2.2;
+      const rate = kTarget === 0 ? 9 : 4.5;
       c.keySteer += Math.max(-rate * dt, Math.min(rate * dt, kTarget - c.keySteer));
       const steerRaw = c.touchSteer ?? c.keySteer;
-      const steer = Math.sign(steerRaw) * Math.pow(Math.abs(steerRaw), 1.6); // gentler around the centre
+      const steer = Math.sign(steerRaw) * Math.pow(Math.abs(steerRaw), 1.15); // nearly linear: the car follows the wheel
       const gas = c.touchGas ?? (c.keys.has("arrowup") || c.keys.has("w") ? 1 : 0);
       const brake = c.touchBrake ?? (c.keys.has("arrowdown") || c.keys.has("s") || c.keys.has(" ") ? 1 : 0);
       c.out.steer = steerRaw;
@@ -239,6 +240,7 @@ export default function PracticeRoom({ onBack }: { onBack: () => void }) {
       if (st.laps.length) bestLap = Math.min(...st.laps);
       const mode = camRef.current;
       const overhead = mode !== "chase";
+      fx.sizeMul = overhead ? 1 : 0.3;
 
       // effects
       const hx = st.hx;
@@ -287,6 +289,13 @@ export default function PracticeRoom({ onBack }: { onBack: () => void }) {
       const straight = st.drs > 0.5;
       builds[0].group.visible = !straight;
       builds[1].group.visible = straight;
+
+      // wheels: fronts steer with the wheel, all four roll
+      spinA += (st.u * dt) / 0.34;
+      for (const b of builds) for (const rg of b.rigs) {
+        if (rg.front) rg.steer.rotation.z = st.steer * 0.5;
+        rg.spin.rotation.y = spinA * (0.34 / rg.r);
+      }
 
       // camera
       const k = 1 - Math.exp(-dt * 7);
