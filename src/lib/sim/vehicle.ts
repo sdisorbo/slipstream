@@ -125,12 +125,8 @@ export function step(p: VehicleParams, st: VState, inp: Input, track: Track): vo
   const au = Math.abs(u);
 
   // steering: rate limited, speed-sensitive lock
-  const maxRate = 14 * dt;
+  const maxRate = (9 * dt) / (1 + (au / 36) * (au / 36));
   st.steer += clamp(steerIn - st.steer, -maxRate, maxRate);
-  const sv = au / 36;
-  const delta = (st.steer * 0.3) / (1 + sv * sv);
-  const cd = 1 - (delta * delta) / 2;
-  const sd = delta;
 
   // active aero: wings flatten on straights
   const straight = Math.abs(steerIn) < 0.06 && thr > 0.5 && brk < 0.05 && st.damage < 60 ? 1 : 0;
@@ -153,31 +149,49 @@ export function step(p: VehicleParams, st: VState, inp: Input, track: Track): vo
   const muF = Math.max(1.2, 1.75 - 2e-5 * fzF) * mulT;
   const muR = Math.max(1.2, 1.75 - 2e-5 * fzR) * mulT * 1.16; // wider rear tyres: built-in understeer margin
 
+  // steering lock follows the grip available: full wheel = turn as hard as the tyres can hold at this speed
+  // (physical lock 0.3 rad at low speed). Asking for more than the grip gives just spins the car, so the wheel never does.
+  // needed angle = geometry (L/R) + the extra the stiff tyres need (understeer gradient), for the lateral accel the grip allows
+  const ayCap = (1.25 * (muF * fzF + muR * fzR)) / m;
+  const kus = Math.max(0, (m / p.L) * (p.b / (10 * muF * fzF) - p.a / (10 * muR * fzR)));
+  const lock = Math.min(0.3, ayCap * (p.L / Math.max(au * au, 16) + kus));
+  const delta = st.steer * lock;
+  const cd = 1 - (delta * delta) / 2;
+  const sd = delta;
+
+  // lateral demand first: the tyres' cornering force is protected, drive and brake force only get what is left
+  // (this is what a real traction control / ABS does; without it a full-throttle press eats the rear grip and it spins)
+  const den = Math.max(au, 4);
+  const alF = (st.v + p.a * st.r) / den - delta * (u < 0 ? -1 : 1);
+  const alR = (st.v - p.b * st.r) / den;
+  const fyFfree = tireLat(alF, muF, fzF, 0);
+  const fyRfree = tireLat(alR, muR, fzR, 0);
+  const room = (cap: number, fy: number) => {
+    const c = 0.97 * cap;
+    return Math.sqrt(Math.max(0, c * c - fy * fy));
+  };
+  const roomF = room(muF * fzF, fyFfree);
+  const roomR = room(muR * fzR, fyRfree);
+
   // longitudinal
   const dir = sgn(u);
   let fxR = 0;
   let fxF = 0;
-  if (thr > 0) {
-    // traction control: the more lateral grip is in use, the less drive the rear axle may ask for
-    const used = clamp((Math.abs(st.ay) * m) / (muF * fzF + muR * fzR), 0, 1);
-    fxR += thr * Math.min(p.power / Math.max(u, 6), muR * fzR * 0.95 * (1 - 0.85 * used * used));
-  }
+  if (thr > 0) fxR += thr * Math.min(p.power / Math.max(u, 6), muR * fzR);
   if (brk < 0.01) {
     const k = clamp(1 - thr * 8, 0, 1);
     if (au > 0.3) fxR -= dir * k * Math.min(p.regenPower / Math.max(au, 8), 0.5 * W);
   }
   if (brk > 0) {
+    // brake bias leans forward for stability
+    const wF = 1.15 * muF * fzF;
+    const wR = 0.85 * muR * fzR;
     const tot = brk * 0.95 * (muF * fzF + muR * fzR);
-    fxF -= dir * tot * (muF * fzF) / (muF * fzF + muR * fzR);
-    fxR -= dir * tot * (muR * fzR) / (muF * fzF + muR * fzR);
+    fxF -= (dir * tot * wF) / (wF + wR);
+    fxR -= (dir * tot * wR) / (wF + wR);
   }
-  fxF = clamp(fxF, -muF * fzF, muF * fzF);
-  fxR = clamp(fxR, -muR * fzR, muR * fzR);
-
-  // lateral
-  const den = Math.max(au, 4);
-  const alF = (st.v + p.a * st.r) / den - delta * (u < 0 ? -1 : 1);
-  const alR = (st.v - p.b * st.r) / den;
+  fxF = clamp(fxF, -roomF, roomF);
+  fxR = clamp(fxR, -roomR, roomR);
   const fyF = tireLat(alF, muF, fzF, fxF);
   const fyR = tireLat(alR, muR, fzR, fxR);
 
@@ -187,7 +201,7 @@ export function step(p: VehicleParams, st: VState, inp: Input, track: Track): vo
   const fyBody = fyF * cd + fxF * sd + fyR;
   const du = fxBody / m + st.v * st.r;
   const dv = fyBody / m - u * st.r;
-  const dr = (p.a * (fyF * cd + fxF * sd) - p.b * fyR) / p.Iz - st.r * (au < 5 ? 2 : 0.7 * Math.min(1, au / 30));
+  const dr = (p.a * (fyF * cd + fxF * sd) - p.b * fyR) / p.Iz - st.r * (au < 5 ? 2 : 2.2 * Math.min(1, au / 30));
   st.ax = fxBody / m;
   st.ay = fyBody / m;
 

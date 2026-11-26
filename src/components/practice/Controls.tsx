@@ -23,6 +23,7 @@ export function Wheel({ ctl, size = 168 }: { ctl: ControlState; size?: number })
   const rot = useRef<SVGGElement>(null);
   const el = useRef<HTMLDivElement>(null);
   const drag = useRef<{ last: number; val: number } | null>(null);
+  const pad = Math.round(size * 0.4);
 
   useEffect(() => {
     let raf = 0;
@@ -67,9 +68,10 @@ export function Wheel({ ctl, size = 168 }: { ctl: ControlState; size?: number })
       onPointerUp={up}
       onPointerCancel={up}
       className="touch-none select-none rounded-full"
-      style={{ width: size, height: size, cursor: "grab" }}
+      // the grabbable area reaches well past the drawn wheel (invisible padding, negative margin keeps the layout the same)
+      style={{ width: size + pad * 2, height: size + pad * 2, padding: pad, margin: -pad, cursor: "grab" }}
     >
-      <svg viewBox="-100 -100 200 200" width={size} height={size}>
+      <svg viewBox="-100 -100 200 200" width={size} height={size} className="pointer-events-none">
         <circle r="96" fill="rgba(12,12,14,.55)" stroke="#2a2a30" />
         <g ref={rot} style={{ transition: "none" }}>
           <circle r="76" fill="none" stroke="#1d1d22" strokeWidth="16" />
